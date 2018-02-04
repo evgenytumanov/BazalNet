@@ -1,4 +1,9 @@
 
+op = lambda x, y: x+y
+op_sym = '+'
+
+training_size= 50000
+
 numbers_alphabet_size = 10
 
 digits = 3

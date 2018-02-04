@@ -24,6 +24,6 @@ def construct_layers(input_seq):
 
     output_shape = output.get_shape.as_list()
     output = tf.reshape(output, [-1, output_shape[-1]])
-    probs = fully_connected(output, config.numbers_alphabet_size, activation_fn, tf.nn.softmax)
+    probs = fully_connected(output, config.numbers_alphabet_size + 1, activation_fn, tf.nn.softmax)
     
     return probs

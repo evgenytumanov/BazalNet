@@ -53,9 +53,13 @@ def gen_dataset(op, op_sym, training_size, digits):
     maxlen = digits + 1 + digits
 
     # All the numbers, plus sign and space for padding.
-    chars = '0123456789{} '.format(op_sym)
-    global ctable
-    ctable = CharacterTable(chars)
+    input_chars = '0123456789{} '.format(op_sym)
+    global input_ctable
+    input_ctable = CharacterTable(input_chars)
+
+    output_chars = '0123456789 '
+    global output_ctable
+    output_ctable = CharacterTable(output_chars)
 
     questions = []
     expected = []
@@ -88,9 +92,9 @@ def gen_dataset(op, op_sym, training_size, digits):
     X = np.zeros((len(questions), maxlen, len(chars)), dtype=np.float)
     y = np.zeros((len(questions), maxlen, len(chars)), dtype=np.float)
     for i, sentence in enumerate(questions):
-        X[i] = ctable.one_hot_encode(sentence, maxlen)
+        X[i] = input_ctable.one_hot_encode(sentence, maxlen)
     for i, sentence in enumerate(expected):
-        y[i] = ctable.one_hot_encode(sentence, maxlen)
+        y[i] = output_ctable.one_hot_encode(sentence, maxlen)
 
     # Shuffle (x, y) in unison as the later parts of x will almost all be larger
     # digits.

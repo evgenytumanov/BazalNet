@@ -89,8 +89,8 @@ def gen_dataset(op, op_sym, training_size, digits):
     print('Total addition questions:', len(questions))
 
     print('Vectorization...')
-    X = np.zeros((len(questions), maxlen, len(chars)), dtype=np.float)
-    y = np.zeros((len(questions), maxlen, len(chars)), dtype=np.float)
+    X = np.zeros((len(questions), maxlen, len(input_chars)), dtype=np.float)
+    y = np.zeros((len(questions), maxlen, len(output_chars)), dtype=np.float)
     for i, sentence in enumerate(questions):
         X[i] = input_ctable.one_hot_encode(sentence, maxlen)
     for i, sentence in enumerate(expected):

@@ -3,7 +3,7 @@
 import numpy as np
 import tensorflow as tf
 import config
-
+import mytf
 
 def tf_cut_function(val, vlo, vhi, glo, ghi):
   if vlo is None:

@@ -9,7 +9,7 @@ numbers_alphabet_size = 10
 digits = 3
 maxlen = digits * 2 + 1
 
-nmaps = 11
+nmaps = 12
 CGRU_apply_times = 2
 
 lr = 0.01
@@ -17,12 +17,14 @@ cutoff = 1.2
 cutoff_tanh = 0.0
 
 batch_size = 32
+val_batch_size = 32
 kw = 3
 kh = 3
 
 smooth_grad = 0.0
 smooth_grad_tanh = 0.0
 
+iters = 10000
 '''
 
   tf.app.flags.DEFINE_float("lr", 0.001, "Learning rate.")

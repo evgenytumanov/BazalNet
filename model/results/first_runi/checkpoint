@@ -1,0 +1,6 @@
+model_checkpoint_path: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-7"
+all_model_checkpoint_paths: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-3"
+all_model_checkpoint_paths: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-4"
+all_model_checkpoint_paths: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-5"
+all_model_checkpoint_paths: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-6"
+all_model_checkpoint_paths: "C:\\Users\\tumanov\\Projects\\BazalNet\\model\\results\\first_runi\\model.ckpt-7"

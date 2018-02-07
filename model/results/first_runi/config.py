@@ -16,8 +16,12 @@ lr = 0.01
 cutoff = 1.2
 cutoff_tanh = 0.0
 
-batch_size = 32
+batch_size = 128
 val_batch_size = 32
+
+print_loss_every = 100
+calc_val_loss_every = 100
+
 kw = 3
 kh = 3
 

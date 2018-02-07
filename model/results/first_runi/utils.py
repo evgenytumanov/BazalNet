@@ -8,10 +8,10 @@ from sklearn.model_selection import train_test_split
 def iterate_minibatches_global(inputs, targets, batchsize, start_it, iters):
     len_ = len(inputs)
     assert len_ == len(targets)
+    indices = np.arange(len(inputs))
 
     for it in range(start_it, iters):
         if it % len_ == 0:
-            indices = np.arange(len(inputs))
             np.random.shuffle(indices)
 
         if it % len_ < len_ - batchsize + 1:

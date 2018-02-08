@@ -52,9 +52,12 @@ def main():
    
     expected_ouput_seq_rsh = tf.reshape(expected_ouput_seq, [-1, config.numbers_alphabet_size + 1])
 
+ 
+
     # define loss 
     with tf.name_scope('loss'):    
         loss = tf.losses.softmax_cross_entropy(onehot_labels=expected_ouput_seq_rsh, logits=nn_ouput_probs_rsh)
+        #t
     loss_summary = tf.summary.scalar('loss', loss)
 
     # define accuracy

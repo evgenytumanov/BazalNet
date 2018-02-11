@@ -37,6 +37,7 @@ def get_global_step_init(experiment_dir):
 def main():
 
     experiment_dir = os.path.dirname(os.path.abspath(__file__))
+    tf.logging.set_verbosity(tf.logging.ERROR)
 
     # generating the dataset
     X_train, X_val, y_train, y_val = gen_dataset(config.op, config.op_sym, config.training_size, config.digits)
@@ -45,19 +46,21 @@ def main():
     with tf.name_scope('inputs'):
         input_seq = tf.placeholder(tf.float32, [None, config.maxlen, config.numbers_alphabet_size + 2], name='input_seq') # tensor of shape <batch_size, seq_len, embedding size>
         expected_ouput_seq = tf.placeholder(tf.float32, [None, config.maxlen, config.numbers_alphabet_size + 1], name='ouput_seq') # tensor of shape <batch_size, seq_len, numbers_alphabet_size>
-        
+        #mask = tf.placeholder(tf.bool, [None, config.numbers_alphabet_size + 1], name='ouput_seq')
     # construct layers
     nn_output_probs = construct_layers(input_seq) 
     nn_ouput_probs_rsh = tf.reshape(nn_output_probs, [-1, config.numbers_alphabet_size + 1])
    
     expected_ouput_seq_rsh = tf.reshape(expected_ouput_seq, [-1, config.numbers_alphabet_size + 1])
 
- 
+    class_weights = np.ones(config.numbers_alphabet_size + 1)
+    class_weights[0] = 0.
+    sample_weights = tf.reduce_sum(tf.multiply(expected_ouput_seq_rsh, class_weights), 1)
+    
 
     # define loss 
     with tf.name_scope('loss'):    
-        loss = tf.losses.softmax_cross_entropy(onehot_labels=expected_ouput_seq_rsh, logits=nn_ouput_probs_rsh)
-        #t
+        loss = tf.losses.softmax_cross_entropy(onehot_labels=expected_ouput_seq_rsh, logits=nn_ouput_probs_rsh, weights=sample_weights)
     loss_summary = tf.summary.scalar('loss', loss)
 
     # define accuracy
@@ -67,10 +70,14 @@ def main():
     accuracy_summary = tf.summary.scalar('accuracy', accuracy)
 
     # optimization
+
     optimizer = tf.train.AdamOptimizer(config.lr)
     global global_step
     global_step = tf.train.get_or_create_global_step()
-    train_op = slim.learning.create_train_op(loss, optimizer, global_step=global_step)
+    gvs = optimizer.compute_gradients(loss)
+    capped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in gvs]
+    train_op = optimizer.apply_gradients(capped_gvs, global_step=global_step)
+
 
     # config magic
     tf_config = tf.ConfigProto(log_device_placement = False)
@@ -81,21 +88,39 @@ def main():
         with tf.train.MonitoredTrainingSession(checkpoint_dir=experiment_dir,
                                                save_checkpoint_secs=300,
                                                save_summaries_steps=200, config=tf_config) as sess:
-
             global_step_init = get_global_step_init(experiment_dir) #TODO
             if global_step_init != 0:
                 print('Last run was aborted on global_step_init :{}'.format(global_step_init))
             else:
                 print('Previous runs not found (You are begining this experiment).')
 
+            
 
             for inputs, targets in utils.iterate_minibatches_global(X_train, y_train, batchsize=config.batch_size, start_it=global_step_init, iters=config.iters):
+                '''
+                input_chars = '0123456789{} '.format(config.op_sym)
+                global input_ctable
+                input_ctable = CharacterTable(input_chars)
 
-                train_loss = sess.run([train_op, loss, accuracy], feed_dict={input_seq : inputs, expected_ouput_seq : targets})
+                output_chars = '0123456789 '
+                global output_ctable
+                output_ctable = CharacterTable(output_chars)
+
+                
+                print(inputs[0])
+                print(targets[0])
+                print(input_ctable.one_hot_decode(inputs[0]))
+                print(output_ctable.one_hot_decode(targets[0]))
+
+
+                raise NotImplemented
+                '''
+                _, train_loss, train_accuracy = sess.run([train_op, loss, accuracy], feed_dict={input_seq : inputs, expected_ouput_seq : targets})
                 gs = sess.run(global_step)
 
                 if gs % config.print_loss_every == 0:
-                    print("Step = {}; Train loss: {}".format(gs, train_loss))
+                    print(inputs.shape, targets.shape)
+                    print("Step = {}; Train loss: {}; Train accuracy: {}".format(gs, train_loss, train_accuracy))
 
                 if gs % config.calc_val_loss_every == 0:
                     val_loss, val_accuracy = calc_validation_loss(sess, loss, accuracy, input_seq, expected_ouput_seq, X_val, y_val)

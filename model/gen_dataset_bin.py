@@ -1,4 +1,3 @@
-
 import numpy as np
 import config
 import tensorflow as tf
@@ -13,12 +12,13 @@ class CharacterTable(object):
     """
     def __init__(self, chars):
         """Initialize character table.
+
         # Arguments
             chars: Characters that can appear in the input.
         """
         self.chars = sorted(set(chars))
-        self.char_indices = dict((c, i) for i, c in enumerate(sorted(self.chars)))
-        self.indices_char = dict((i, c) for i, c in enumerate(sorted(self.chars)))
+        self.char_indices = dict((c, i) for i, c in enumerate(self.chars))
+        self.indices_char = dict((i, c) for i, c in enumerate(self.chars))
 
     def encode(self, sentence):
         """encode string into ints representation
@@ -31,6 +31,7 @@ class CharacterTable(object):
 
     def one_hot_encode(self, C, num_rows):
         """One hot encode given string C.
+
         # Arguments
             num_rows: Number of rows in the returned one hot encoding. This is
                 used to keep the # of rows for each data the same.
@@ -49,14 +50,14 @@ def gen_dataset(op, op_sym, training_size, digits):
     
     # Maximum length of input is 'int + int' (e.g., '345+678'). Maximum length of
     # int is DIGITS.
-    maxlen = digits + 1 + digits
+    maxlen = config.maxlen #digits + 1 + digits
 
     # All the numbers, plus sign and space for padding.
-    input_chars = '0123456789{} '.format(op_sym)
+    input_chars = '01{} '.format(op_sym)
     global input_ctable
     input_ctable = CharacterTable(input_chars)
 
-    output_chars = '0123456789 '
+    output_chars = '01 '
     global output_ctable
     output_ctable = CharacterTable(output_chars)
 
@@ -77,16 +78,16 @@ def gen_dataset(op, op_sym, training_size, digits):
             continue
         seen.add(key)
         # Pad the data with spaces such that it is always MAXLEN.
-        q = '{}{}{}'.format(a, op_sym, b)
+        q = '{}{}{}'.format('{0:010b}'.format(a), op_sym, '{0:010b}'.format(b))
         query = q + ' ' * (maxlen - len(q))
-        ans = str(op(a, b))
+        ans = str('{0:010b}'.format(op(a, b)))
         # Answers can be of maximum size DIGITS + 1.
         ans += ' ' * (maxlen - len(ans))
        
         questions.append(query)
         expected.append(ans)
     print('Total addition questions:', len(questions))
-
+    print(questions[:10], expected[:10])
     print('Vectorization...')
     X = np.zeros((len(questions), maxlen, len(input_chars)), dtype=np.float)
     y = np.zeros((len(questions), maxlen, len(output_chars)), dtype=np.float)
@@ -101,7 +102,9 @@ def gen_dataset(op, op_sym, training_size, digits):
     np.random.shuffle(indices)
     X = X[indices]
     y = y[indices]
-    X = X/ 1000.
+    
+    # Normalizing
+    X /= 100.
 
     # Explicitly set apart 10% for validation data that we never train over.
     split_at = len(X) - len(X) // 10
@@ -117,3 +120,4 @@ def gen_dataset(op, op_sym, training_size, digits):
     print(y_val.shape)
 
     return X_train, X_val, y_train, y_val
+

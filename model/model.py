@@ -12,15 +12,27 @@ def construct_layers(input_seq):
     '''
 
     with tf.name_scope('s_tensor'):
-        nn = tf.expand_dims(input_seq, 1) # tensor of shape <batch_size, 1, seq_len, embedding size>
-        paddings = tf.constant([[0, 0], [0, config.maxlen - 1], [0, 0], [0, 0]])
-        nn = tf.pad(nn, paddings, 'CONSTANT') # tensor of shape <batch_size, maxlen, seq_len, embedding size>
+        input_shape = input_seq.get_shape().as_list()
+
+        nn = tf.reshape(input_seq, [-1, input_shape[-1]])
+        nn = fully_connected(nn, config.nmaps)
+        print('Embed: {}'.format(nn.get_shape().as_list()))
+
+        nn = tf.reshape(nn, [-1, input_shape[1], config.nmaps])
+        print('Embed seq: {}'.format(nn.get_shape().as_list()))
+
+        nn = tf.expand_dims(nn, 1) # tensor of shape <batch_size, 1, seq_len, nmaps>
         
+        print('paddings input: {}'.format(nn.get_shape().as_list()))
+        paddings = tf.constant([[0, 0], [0, config.mental_width - 1], [0, 0], [0, 0]])
+        nn = tf.pad(nn, paddings, 'CONSTANT') # tensor of shape <batch_size, maxlen, seq_len, nmaps>
+       
+    print('CGRU input: {}'.format(nn.get_shape().as_list()))
     with tf.name_scope('CGRU'):
         for i in range(config.maxlen * config.CGRU_apply_times):
             nn = conv_gru(nn, config.kw, config.kh, config.nmaps, config.cutoff, 'CGRU_apply_step_{}'.format(i))
-        
-    output = nn[:, 0, :, :] # tensor of shape <batch_size, time, embedding size>
+    print('conv_gru output: {}'.format(nn.get_shape().as_list()))
+    output = nn[:, 0, :, :] # tensor of shape <batch_size, time, nmaps>
 
     output_shape = output.get_shape().as_list()
     output = tf.reshape(output, [-1, output_shape[-1]])
